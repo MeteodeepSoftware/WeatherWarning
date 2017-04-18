@@ -1,0 +1,45 @@
+from time import sleep
+from twilio.rest import TwilioRestClient
+
+from sense_hat import SenseHat
+
+
+client = TwilioRestClient(account='account_info', token='token_number')
+
+
+sense = SenseHat()
+sense.clear()
+
+pressure = sense.get_pressure()
+pressure = round(pressure, 1)
+pressure = int(pressure)
+
+if pressure <= 995:
+    pressure = str(pressure)
+    target1 = open('/var/www/meteodeep/weatherwarning.txt', 'w')
+    target1.write("LOW PRESSURE WARNING:")
+    target1.write(pressure)
+    target1.close()
+
+elif pressure >= 996:
+    pressure = str(pressure)
+    target1 = open('/var/www/meteodeep/weatherwarning.txt', 'w')
+    target1.write("No Current Weather Warning")
+    target1.close()
+    client.messages.create(to='phone_number',
+                from_='phone_number',
+                body="Weather Warning:http://bit.ly/2mYnh6B ")
+
+
+else:
+    print("ERROR")
+
+
+from subprocess import call
+Upload = "/home/pi/Dropbox-Uploader/dropbox_uploader.sh upload /var/www/meteodeep/weatherwarning.txt /WeatherWarning.txt"
+call ([Upload], shell=True)
+
+
+# crontab
+# 0 * * * * /var/www/meteodeep/LivePressure.py
+
