@@ -1,0 +1,54 @@
+import subprocess
+import smtplib
+import socket
+from email.mime.text import MIMEText
+import datetime
+
+from time import sleep
+	
+from sense_hat import SenseHat
+
+sense = SenseHat()
+sense.clear()
+
+pressure = sense.get_pressure()
+pressure = round(pressure, 1)
+pressure = str(pressure)
+
+if pressure <= "995":
+    target1 = open('/var/www/meteodeep/weatherwarning.txt', 'w')
+    target1.write(pressure)
+    target1.close()
+    #account info
+    to = 'example@gmail.com'
+    gmail_user = 'example@gmail.com'
+    gmail_password = 'your_password'
+    smtpserver = smtplib.SMTP('smtp.gmail.com', 587)
+    smtpserver.ehlo()
+    smtpserver.starttls()
+    smtpserver.login(gmail_user, gmail_password)
+    msgto='LOW PRESSURE WARNING:https://goo.gl/o4O70x' 
+    msg=MIMEText(my_ip)
+    msg['Subject']= 'Weather Warning'
+    msg['From']= gmail_user
+    msg['To'] = to
+    smtpserver.sendmail(gmail_user, [to], msg.as_string())
+    smtpserver.quit()
+    
+    
+elif pressure >= "996":
+    target1 = open('/var/www/meteodeep/weatherwarning.txt', 'w')
+    target1.write("No Current Weather Warning")
+    target1.close()
+
+else:
+    print("ERROR")
+
+
+from subprocess import call
+Upload = "/home/pi/Dropbox-Uploader/dropbox_uploader.sh upload /var/www/meteodeep/weatherwarning.txt /WeatherWarning.txt"
+call ([Upload], shell=True)
+
+
+# crontab
+# 0 * * * * sudo /usr/bin/python3 /var/www/meteodeep/LivePressure.py
